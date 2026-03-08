@@ -40,7 +40,9 @@ class App {
     this.webgl.initArrays(1024 * 1024 * 2);
 
 
-
+    this.maxProgress = 512 * 512;
+    this.tempP = 0;
+    
     this.level = -1;
     this.initUI();
 
@@ -50,7 +52,7 @@ class App {
 
     const tickInterval = 1000 / 30;
     setInterval(() => this.tick(), tickInterval);
-    setInterval(() => this.saveToStorage(), 5000);
+    //setInterval(() => this.saveToStorage(), 5000);
 
     if (this.firstLoad) {
       this.showModal('helpContainer');
@@ -62,7 +64,8 @@ class App {
 
     this.state = {
       setPoints: 0,
-      gridStatus: []
+      gridStatus: [],
+      marker: -1
     };
 
     for (let x = 0; x < 32; x++) {
@@ -70,7 +73,8 @@ class App {
         const grid = {
           banked: 0,
           progress: 0, //progress goes from 0 to 512 * 512
-          startTime: 0
+          lastTime: 0,
+          iters: 0
         };
         this.state.gridStatus.push(grid);
       }
@@ -137,7 +141,7 @@ class App {
     for (let x = 0; x < w; x++) {
       for (let y = 0; y < w; y++) {
         const state = this.state.gridStatus[x + y * w];
-        if (state.progress === 0) {
+        if (state.progress < this.maxProgress) {
           const cr = this.lerp(-2, 1, x / w);
           const ci = this.lerp(-1.5, 1.5, y / w);
           this.drawJuliaMini(this.ctx, size, x, y, cr, ci, state);
@@ -249,8 +253,6 @@ class App {
         const y = this.lerp(-1.5, 1.5, cy / ctx.canvas.width);
         const val = this.getMandel(x, y, 100);
         const rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0 : 0.5);
-        //ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
-        //ctx.fillRect(cx, cy, size, size);
         this.webgl.addRect(cx, cy, step, step, rgb.r, rgb.g, rgb.b, 1);
       }
     }
@@ -258,35 +260,115 @@ class App {
 
   drawJuliaMini(ctx, size, xi, yi, cr, ci, state) {
     this.drawJulia(ctx, xi * size, yi * size, size, 2, cr, ci, state);  
-    //ctx.strokeRect(xi * size, yi * size, size, size);
   }
 
   drawJulia(ctx, locx, locy, size, step, cr, ci, state) {
-    ctx.save();
-    //ctx.translate(locx, locy);
-    const statef = state.progress / (512 * 512);
-    for (let cy = 0; cy < size; cy += step) {
-      for (let cx = 0; cx < size; cx += step) {
-        const f = (cy * size + cx) / (size * size);
+    const statef = state.progress / this.maxProgress;
+    const iw = size / step;
+    for (let yi = 0; yi < iw; yi++) {
+      for (let xi = 0; xi < iw; xi++) {
+        const cx = xi * step;
+        const cy = yi * step;
+        const f = (yi * iw + xi) / (iw * iw);
         const x = this.lerp(-2, 2, cx / size);
         const y = this.lerp(-2, 2, cy / size);
+        //TODO: get julia data from calc
         const val = this.getJulia(x, y, cr, ci, 100);
         let rgb;
         if (statef > f) {
-          //ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
           rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0: 0.5);
         } else {
-          //ctx.fillStyle = `hsl(0, 0%, 50%)`;
           rgb = {r: 0.5, g: 0.5, b: 0.5};
         }
-        //ctx.fillRect(cx, cy, step, step);
         this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, 1);
       }
     }
-    ctx.restore();
+  }
+
+  calcJulia(size, step, cr, ci) {
+    this.juliaData = new Array((size / step) * (size / step));
+    let i = 0;
+    for (let cy = 0; cy < size; cy += step) {
+      for (let cx = 0; cx < size; cx += step) {
+        const x = this.lerp(-2, 2, cx / size);
+        const y = this.lerp(-2, 2, cy / size);
+        const val = this.getJulia(x, y, cr, ci, 100);
+        this.juliaData[i] = val;
+        i++;
+      }
+    }
   }
 
   tick() {
+    //30 ticks per second
+    const itersPerSecond = 1000000;
+    this.iterRate = itersPerSecond / 30; //TODO: update this to an equation based on points
+    if (this.state.marker !== -1) {
+      const gridStatus = this.state.gridStatus[this.state.marker];
+      if (gridStatus.progress < this.maxProgress) {
+        const cx = this.state.marker % 32;
+        const cy = Math.floor(this.state.marker / 32);
+        const cr = this.lerp(-2, 1, cx / 32);
+        const ci = this.lerp(-1.5, 1.5, cy / 32);
+
+        if (this.juliaData === undefined) {
+          this.calcJulia(1024, 2, cr, ci);
+        }
+  
+
+        const curTime = (new Date()).getTime();
+        const deltaTime = gridStatus.lastTime > 0 ? ((curTime - gridStatus.lastTime) / 1000) : 0;
+        if (deltaTime === undefined) {
+          throw 'undef';
+        }
+        let itersRemaining = this.iterRate * deltaTime;
+        while (itersRemaining > 0 && gridStatus.progress < this.maxProgress) {
+          const oldIters = gridStatus.iters;
+          gridStatus.iters += itersRemaining;
+          itersRemaining = 0;
+          if (gridStatus.iters === Infinity) {
+            throw 'inf';
+          }
+          if (gridStatus.iters >= this.juliaData[gridStatus.progress]) {
+            itersRemaining = gridStatus.iters - this.juliaData[gridStatus.progress];
+            gridStatus.progress++;
+            gridStatus.iters = 0;
+          }
+        }
+        gridStatus.lastTime = curTime;
+
+        if (gridStatus.progress >= this.maxProgress) {
+          this.state.marker++;
+          this.juliaData = undefined;
+          //draw mandel
+          if (this.level === -1) {
+            //draw the mandel piece
+            this.drawMandel(this.ctx, cx * 32, cy * 32, 32, 2);
+            this.webgl.draw();
+            this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
+          }
+        } else {
+          if (this.level !== -1 ) {
+            if (this.state.marker === this.level) {
+              //update big julia
+              this.webgl.resetTriangleIndexes();
+              const status = this.state.gridStatus[this.level];
+              this.drawJulia(this.ctx, 0, 0, 1024, 2, cr, ci, status);
+              this.webgl.draw();
+              this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+            }
+          } else {
+            //update small julia
+            this.drawJuliaMini(this.ctx, 32, cx, cy, cr, ci, gridStatus);
+            this.webgl.draw();
+            this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
+          }
+        }
+        
+        //TODO: detect game win condition
+        
+      }
+    }
   }
 
   gridClick(x, y) {
