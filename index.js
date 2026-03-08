@@ -15,6 +15,22 @@
 
   TODO:
   add import/export
+  need way to move marker 
+  need to save progress when cursor moves
+  need to pick up progress when cursor moves
+  need to figure out scaling for iters per tick
+  need to display total play time and maybe an estimate for remaining time
+  sort out drawing or not drawing cell borders
+  get howie and julia faces into set space
+  add win condition and display
+  fill in help info
+  add help button
+  accumulate points to increase iter rate
+  write post text
+  figure out why it gets stuck sometimes and needs to click a grid and go back
+    to map to start drawing little julias again and why doesn't it start at least
+    drawing mandels?
+
 */
 
 class App {
@@ -338,15 +354,24 @@ class App {
         gridStatus.lastTime = curTime;
 
         if (gridStatus.progress >= this.maxProgress) {
-          this.state.marker++;
-          this.juliaData = undefined;
           //draw mandel
           if (this.level === -1) {
             //draw the mandel piece
+            this.webgl.resetTriangleIndexes();
             this.drawMandel(this.ctx, cx * 32, cy * 32, 32, 2);
             this.webgl.draw();
             this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
+          } else {
+            if (this.state.marker === this.level) {
+              this.webgl.resetTriangleIndexes();
+              const status = this.state.gridStatus[this.level];
+              this.drawJulia(this.ctx, 0, 0, 1024, 2, cr, ci, status);
+              this.webgl.draw();
+              this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+            }
           }
+          this.state.marker++;
+          this.juliaData = undefined;
         } else {
           if (this.level !== -1 ) {
             if (this.state.marker === this.level) {
@@ -359,6 +384,7 @@ class App {
             }
           } else {
             //update small julia
+            this.webgl.resetTriangleIndexes();
             this.drawJuliaMini(this.ctx, 32, cx, cy, cr, ci, gridStatus);
             this.webgl.draw();
             this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
