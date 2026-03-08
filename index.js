@@ -31,6 +31,16 @@ class App {
 
     this.ctx = this.cmain.getContext('2d');
 
+    this.webgl = new WebGLFramework({
+      canvasWidth: 1024,
+      canvasHeight: 1024,
+      canvasBGColor: {r: 0, g: 0, b: 0, a: 0}
+    });
+
+    this.webgl.initArrays(1024 * 1024 * 2);
+
+
+
     this.level = -1;
     this.initUI();
 
@@ -123,6 +133,7 @@ class App {
   drawTopGrid() {
     const size = 32;
     const w = this.cmain.width / size;
+    this.webgl.resetTriangleIndexes();
     for (let x = 0; x < w; x++) {
       for (let y = 0; y < w; y++) {
         const state = this.state.gridStatus[x + y * w];
@@ -133,9 +144,12 @@ class App {
         } else {
           this.drawMandel(this.ctx, x * size, y * size, size, 2);
         }
-        this.ctx.strokeRect(x * size, y * size, size, size);
+        //this.ctx.strokeRect(x * size, y * size, size, size);
       }
     }
+    this.webgl.draw();
+    this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+
   }
 
   getMandel(x, y, maxIter) {
@@ -194,38 +208,74 @@ class App {
     return (1 - t) * a + t * b;
   }
 
+  hslToRgb(h, s, l) {
+    let r, g, b;
+
+    if (s === 0) {
+      r = g = b = l; // Achromatic (gray)
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+
+      r = hue2rgb(p, q, h / 360 + 1/3);
+      g = hue2rgb(p, q, h / 360);
+      b = hue2rgb(p, q, h / 360 - 1/3);
+    }
+
+    return {
+      r: r,
+      g: g,
+      b: b
+    };
+  }
+
   drawMandel(ctx, locx, locy, size, step) {
     for (let cx = locx; cx < locx + size; cx += step) {
       for (let cy = locy; cy < locy + size; cy += step) {
         const x = this.lerp(-2, 1, cx / ctx.canvas.width);
         const y = this.lerp(-1.5, 1.5, cy / ctx.canvas.width);
         const val = this.getMandel(x, y, 100);
-        ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
-        ctx.fillRect(cx, cy, size, size);
+        rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0 : 0.5);
+        //ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
+        //ctx.fillRect(cx, cy, size, size);
+        this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, 1);
       }
     }
   }
 
   drawJuliaMini(ctx, size, xi, yi, cr, ci, state) {
     this.drawJulia(ctx, xi * size, yi * size, size, 2, cr, ci, state);  
-    ctx.strokeRect(xi * size, yi * size, size, size);
+    //ctx.strokeRect(xi * size, yi * size, size, size);
   }
 
   drawJulia(ctx, locx, locy, size, step, cr, ci, state) {
     ctx.save();
-    ctx.translate(locx, locy);
+    //ctx.translate(locx, locy);
     for (let cy = 0; cy < size; cy += step) {
       for (let cx = 0; cx < size; cx += step) {
         const f = (cy * size + cx) / (size * size);
         const x = this.lerp(-2, 2, cx / size);
         const y = this.lerp(-2, 2, cy / size);
         const val = this.getJulia(x, y, cr, ci, 100);
+        let rgb;
         if (state.progress > f || true) {
-          ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
+          //ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
+          rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0: 0.5);
         } else {
-          ctx.fillStyle = `hsl(0, 0%, 50%)`;
+          //ctx.fillStyle = `hsl(0, 0%, 50%)`;
+          rgb = {r: 127, g: 127, b: 127};
         }
-        ctx.fillRect(cx, cy, step, step);
+        //ctx.fillRect(cx, cy, step, step);
+        this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, 1);
       }
     }
     ctx.restore();
@@ -243,7 +293,11 @@ class App {
       const ci = this.lerp(-1.5, 1.5, y / 32);
 
       const state = this.state.gridStatus[x + y * 32];
+      this.webgl.resetTriangleIndexes();
       this.drawJulia(this.ctx, 0, 0, this.cmain.width, 2, cr, ci, state);
+      this.webgl.draw();
+      this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+
 
     }
   }
