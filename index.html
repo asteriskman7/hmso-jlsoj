@@ -15,9 +15,20 @@
   </head>
 
   <body>
-    <div id='infoContainer'>INFO</div>
-    <canvas id='cmandel' width='1024' height='1024'></canvas>
-    <canvas id='cjulia' width='1024' height='1024'></canvas>
+    <div id='infoContainer'>INFO <button id='reset'>Reset</button><button id='showMap'>Map</button></div>
+    <canvas id='cmain' width='1024' height='1024'></canvas>
+    <dialog id='helpContainer'>
+      HELP CONTAINER
+      <button id='helpClose'>Close</button>
+    </dialog>
+    <dialog id='resetConfirm'>
+      <div>
+        Are you sure you want to reset?
+      </div>
+      <div id='resetButtonsDiv'>
+        <button id='resetYes'>Yes</button><button id='resetNo'>No</button>
+      </div>
+    </dialog>
     <script src='./index.js'></script>
   </body>
 </html>

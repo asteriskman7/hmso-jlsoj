@@ -1,10 +1,10 @@
 :root {
   --bg: #404040;
+  --info-bg: #808080;
 }
 
 * {
-  margin: 0;
-  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
@@ -14,4 +14,20 @@ body {
 
 canvas {
   background-color: black;
+}
+
+dialog {
+  background-color: var(--info-bg);
+  border-radius: 10px;
+  box-shadow: 6px 6px 5px hsla(0, 0%, 0%, 0.5);
+}
+
+dialog::backdrop {
+  backdrop-filter: blur(2px);
+}
+
+#resetButtonsDiv {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 40px;
 }
