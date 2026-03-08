@@ -31,3 +31,12 @@ dialog::backdrop {
   grid-template-columns: 1fr 1fr;
   grid-column-gap: 40px;
 }
+
+#infoContainer {
+  background-color: var(--info-bg);
+  width: 28em;
+  outline: 1px solid black;
+  box-shadow: 6px 6px 5px hsla(0, 0%, 0%, 0.5);
+  border-radius: 10px;
+  padding: 7px;
+}

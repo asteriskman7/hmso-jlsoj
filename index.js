@@ -20,16 +20,14 @@
   need to pick up progress when cursor moves
   need to figure out scaling for iters per tick
   need to display total play time and maybe an estimate for remaining time
+  show info about current julia completion
   sort out drawing or not drawing cell borders
   get howie and julia faces into set space
   add win condition and display
   fill in help info
-  add help button
   accumulate points to increase iter rate
   write post text
-  figure out why it gets stuck sometimes and needs to click a grid and go back
-    to map to start drawing little julias again and why doesn't it start at least
-    drawing mandels?
+  make favicon.png
 
 */
 
@@ -132,9 +130,11 @@ class App {
     this.UI.resetYes.onclick = () => this.reset();
     this.UI.resetNo.onclick = () => this.closeModal('resetConfirm');
     this.UI.helpClose.onclick = () => this.closeModal('helpContainer');
+    this.UI.showHelp.onclick = () => this.showModal('helpContainer');
 
     this.cmain.onclick = (evt) => this.onclick(evt);
     this.UI.showMap.onclick = () => this.showMap();
+
   }
 
   showModal(id) {
@@ -317,8 +317,9 @@ class App {
 
   tick() {
     //30 ticks per second
-    const itersPerSecond = 1000000;
-    this.iterRate = itersPerSecond / 30; //TODO: update this to an equation based on points
+    //TODO: figure out why this nees to be so large
+    const itersPerSecond = 10;
+    this.iterRate = itersPerSecond; //TODO: update this to an equation based on points
     if (this.state.marker !== -1) {
       const gridStatus = this.state.gridStatus[this.state.marker];
       if (gridStatus.progress < this.maxProgress) {
@@ -331,20 +332,13 @@ class App {
           this.calcJulia(1024, 2, cr, ci);
         }
   
-
         const curTime = (new Date()).getTime();
         const deltaTime = gridStatus.lastTime > 0 ? ((curTime - gridStatus.lastTime) / 1000) : 0;
-        if (deltaTime === undefined) {
-          throw 'undef';
-        }
         let itersRemaining = this.iterRate * deltaTime;
         while (itersRemaining > 0 && gridStatus.progress < this.maxProgress) {
           const oldIters = gridStatus.iters;
           gridStatus.iters += itersRemaining;
           itersRemaining = 0;
-          if (gridStatus.iters === Infinity) {
-            throw 'inf';
-          }
           if (gridStatus.iters >= this.juliaData[gridStatus.progress]) {
             itersRemaining = gridStatus.iters - this.juliaData[gridStatus.progress];
             gridStatus.progress++;
