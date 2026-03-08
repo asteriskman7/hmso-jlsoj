@@ -69,7 +69,7 @@ class App {
       for (let y = 0; y < 32; y++) {
         const grid = {
           banked: 0,
-          progress: 0,
+          progress: 0, //progress goes from 0 to 512 * 512
           startTime: 0
         };
         this.state.gridStatus.push(grid);
@@ -144,11 +144,15 @@ class App {
         } else {
           this.drawMandel(this.ctx, x * size, y * size, size, 2);
         }
-        //this.ctx.strokeRect(x * size, y * size, size, size);
       }
     }
     this.webgl.draw();
     this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < w; y++) {
+        this.ctx.strokeRect(x * size, y * size, size, size);
+      }
+    }
 
   }
 
@@ -244,10 +248,10 @@ class App {
         const x = this.lerp(-2, 1, cx / ctx.canvas.width);
         const y = this.lerp(-1.5, 1.5, cy / ctx.canvas.width);
         const val = this.getMandel(x, y, 100);
-        rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0 : 0.5);
+        const rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0 : 0.5);
         //ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
         //ctx.fillRect(cx, cy, size, size);
-        this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, 1);
+        this.webgl.addRect(cx, cy, step, step, rgb.r, rgb.g, rgb.b, 1);
       }
     }
   }
@@ -260,6 +264,7 @@ class App {
   drawJulia(ctx, locx, locy, size, step, cr, ci, state) {
     ctx.save();
     //ctx.translate(locx, locy);
+    const statef = state.progress / (512 * 512);
     for (let cy = 0; cy < size; cy += step) {
       for (let cx = 0; cx < size; cx += step) {
         const f = (cy * size + cx) / (size * size);
@@ -267,12 +272,12 @@ class App {
         const y = this.lerp(-2, 2, cy / size);
         const val = this.getJulia(x, y, cr, ci, 100);
         let rgb;
-        if (state.progress > f || true) {
+        if (statef > f) {
           //ctx.fillStyle = `hsl(${val * 360 / 100}, 50%, ${val === 0 ? 0 : 50}%)`;
           rgb = this.hslToRgb(val * 360 / 100, 0.5, val === 0 ? 0: 0.5);
         } else {
           //ctx.fillStyle = `hsl(0, 0%, 50%)`;
-          rgb = {r: 127, g: 127, b: 127};
+          rgb = {r: 0.5, g: 0.5, b: 0.5};
         }
         //ctx.fillRect(cx, cy, step, step);
         this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, 1);
