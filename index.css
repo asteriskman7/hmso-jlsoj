@@ -26,6 +26,28 @@ dialog::backdrop {
   backdrop-filter: blur(2px);
 }
 
+#helpContainer {
+  display: grid;
+  grid-template-rows: 30px 1fr 30px;
+}
+
+#helpTitle {
+  font-weight: bold;
+}
+
+#helpContents {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+}
+
+#helpText {
+  max-width: 450px;
+}
+
+.helpImg {
+  height: 500px;
+}
+
 #resetButtonsDiv {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -39,4 +61,8 @@ dialog::backdrop {
   box-shadow: 6px 6px 5px hsla(0, 0%, 0%, 0.5);
   border-radius: 10px;
   padding: 7px;
+}
+
+.hidden {
+  display: none;
 }

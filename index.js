@@ -24,10 +24,12 @@
   sort out drawing or not drawing cell borders
   get howie and julia faces into set space
   add win condition and display
-  fill in help info
+  re-factor help text to show different voices
+
   accumulate points to increase iter rate
   write post text
   make favicon.png
+  include attribution text
 
 */
 
@@ -71,6 +73,29 @@ class App {
     if (this.firstLoad) {
       this.showModal('helpContainer');
     }
+
+    //this.canvasTest();
+  }
+
+  canvasTest() {
+    //draw anything on an empty
+    const canvas = document.querySelector('#ctest');
+    const ctx = canvas.getContext('2d');
+    const img = document.querySelector('#imgHM');
+
+    ctx.clearRect(0, 0, 512, 512);
+
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(200, 200, 100, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.fillRect(100, 40, 300, 30);
+
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
+
+    this.ctx.drawImage(ctx.canvas, 0, 0, 512, 512, 0, 0, 512, 512); 
+
   }
 
   loadFromStorage() {
@@ -395,17 +420,24 @@ class App {
     console.log('grid click', x, y);
 
     if (this.level ===  -1) {
-      this.level = x + 32 * y;
-      const cr = this.lerp(-2, 1, x / 32);
-      const ci = this.lerp(-1.5, 1.5, y / 32);
+      
+      const clickedLevel = x + 32 * y;
+      
+      if (clickedLevel === this.state.marker) {
+        this.level = clickedLevel;
+        const cr = this.lerp(-2, 1, x / 32);
+        const ci = this.lerp(-1.5, 1.5, y / 32);
 
-      const state = this.state.gridStatus[x + y * 32];
-      this.webgl.resetTriangleIndexes();
-      this.drawJulia(this.ctx, 0, 0, this.cmain.width, 2, cr, ci, state);
-      this.webgl.draw();
-      this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
-
-
+        const state = this.state.gridStatus[x + y * 32];
+        this.webgl.resetTriangleIndexes();
+        this.drawJulia(this.ctx, 0, 0, this.cmain.width, 2, cr, ci, state);
+        this.webgl.draw();
+        this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+      } else {
+        this.state.marker = clickedLevel;
+      }
+    } else {
+      this.showMap();
     }
   }
 
