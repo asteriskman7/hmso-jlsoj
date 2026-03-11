@@ -1,6 +1,9 @@
 :root {
   --bg: #404040;
   --info-bg: #808080;
+  --help-howie: #f6f4f5;
+  --help-julia: #e8aa6f;
+  --help-both: hsl(29, 72%, 87%);
 }
 
 * {
@@ -33,6 +36,7 @@ dialog::backdrop {
 
 #helpTitle {
   font-weight: bold;
+  text-align: center;
 }
 
 #helpContents {
@@ -41,11 +45,75 @@ dialog::backdrop {
 }
 
 #helpText {
-  max-width: 450px;
+  width: 450px;
+  position: relative;
 }
 
 .helpImg {
   height: 500px;
+}
+
+.helpBoth {
+  background-color: var(--help-both);
+  margin-bottom: 5px;
+}
+
+.helpBoth::before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  border-right: 10px solid var(--help-both);
+  border-bottom: 10px solid var(--help-both);
+  border-top: 10px solid transparent;
+  border-left: 10px solid transparent;
+  left: -19px;
+}
+
+.helpBoth::after {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--help-both);
+  border-top: 10px solid transparent;
+  border-left: 10px solid var(--help-both);
+  left: 450px;
+}
+
+.helpHowie {
+  background-color: var(--help-howie);
+  margin-bottom: 5px;
+}
+
+.helpHowie::before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  border-right: 10px solid var(--help-howie);
+  border-bottom: 10px solid var(--help-howie);
+  border-top: 10px solid transparent;
+  border-left: 10px solid transparent;
+  left: -19px;
+}
+
+.helpJulia {
+  background-color: var(--help-julia);
+  margin-bottom: 5px;
+}
+
+.helpJulia::before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--help-julia);
+  border-top: 10px solid transparent;
+  border-left: 10px solid var(--help-julia);
+  left: 450px;
 }
 
 #resetButtonsDiv {
@@ -61,6 +129,10 @@ dialog::backdrop {
   box-shadow: 6px 6px 5px hsla(0, 0%, 0%, 0.5);
   border-radius: 10px;
   padding: 7px;
+}
+
+#infoTitle {
+  font-weight: bold;
 }
 
 .hidden {
