@@ -17,6 +17,7 @@ body {
 
 canvas {
   background-color: black;
+  box-shadow: 6px 6px 5px hsla(0, 0%, 0%, 0.5);
 }
 
 dialog {
