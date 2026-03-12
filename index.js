@@ -326,15 +326,22 @@ class App {
     }
   }
 
-  calcJulia(size, step, cr, ci) {
+  calcJulia(size, step, cr, ci, progress) {
+    //progress goes from 0 to 512 * 512
     this.juliaData = new Array((size / step) * (size / step));
     let i = 0;
+    this.juliaTotal = 0;
+    this.juliaRem = 0;
     for (let cy = 0; cy < size; cy += step) {
       for (let cx = 0; cx < size; cx += step) {
         const x = this.lerp(-2, 2, cx / size);
         const y = this.lerp(-2, 2, cy / size);
         const val = this.getJulia(x, y, cr, ci, 100);
         this.juliaData[i] = val;
+        this.juliaTotal += val;
+        if (i >= progress) {
+          this.juliaRem += val;
+        }
         i++;
       }
     }
@@ -344,8 +351,8 @@ class App {
     this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
     this.juliaPercent = 0; //TODO: calc this
     this.mandelPercent = 0; //TODO: calc this
-    this.juliaMSRem = 99999;
-    this.mandelMSRem = 9999999;
+    this.juliaMSRem = 0;
+    this.mandelMSRem = 0;
     if (this.state.marker !== -1) {
       const gridStatus = this.state.gridStatus[this.state.marker];
       if (gridStatus.progress < this.maxProgress) {
@@ -355,7 +362,7 @@ class App {
         const ci = this.lerp(-1.5, 1.5, cy / 32);
 
         if (this.juliaData === undefined) {
-          this.calcJulia(1024, 2, cr, ci);
+          this.calcJulia(1024, 2, cr, ci, gridStatus.progress);
         }
   
         const curTime = (new Date()).getTime();
@@ -369,9 +376,11 @@ class App {
             itersRemaining = gridStatus.iters - this.juliaData[gridStatus.progress];
             gridStatus.progress++;
             gridStatus.iters = 0;
+            this.juliaRem -= this.juliaData[gridStatus.progress];
           }
         }
         gridStatus.lastTime = curTime;
+        this.juliaMSRem = 1000 * this.juliaRem / this.rate;
 
         if (gridStatus.progress >= this.maxProgress) {
           //draw mandel
