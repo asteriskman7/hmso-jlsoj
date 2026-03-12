@@ -9,21 +9,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-
-
     <link href='index.css' rel='stylesheet' type='text/css'>
   </head>
 
   <body>
     <div id='infoContainer'> 
       <div id='infoTitle'>Howie Mandel(brot)'s Set of Julia Louis-Dreyfus Sets of Jubilation</div>
-      <div>Total Play Time</div>
-      <div>Selected Julia Status</div>
-      <div>Discuss on discord</div>
+      <div>Points: <span id='infoPoints'></span></div>
+      <div>Rate: <span id='infoRate'></span></div>
+      <div>Total Play Time: <span id='infoTotalPlayTime'></span></div>
+      <div>Selected Julia Status: <div id='infoJuliaStatus'><div id='infoJuliaProgress'></div></div></div>
+      <div>Mandel Status: <div id='infoMandelStatus'><div id='infoMandelProgress'></div></div></div>
+      <div>Discuss on <a href='https://discord.gg/pC9RY5B' target='_blank' rel='noopener noreferrer'>discord</a></div>
       <button id='showMap'>Map</button>
       <button id='showHelp'>Help</button>
       <button id='reset'>Reset</button>
-      <div>SNAIL APPROVED</div>
+      <span id='infoApprove'>Approved by the one and only &#128012;</span>
     </div>
     <canvas id='cmain' width='1024' height='1024'></canvas>
     <dialog id='helpContainer'>

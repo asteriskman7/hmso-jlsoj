@@ -13,22 +13,21 @@
   need to pre-calculate all the data because floating point calculations might
     not be the same on all devices
 
+  total iterations including set pixels as maxiter: 1151522780
+  poins in all julia sets: 6655572
+  average iterations per julia: 1124534
+  min possible iterations per julia: 262144
+
   TODO:
   add import/export
-  need way to move marker 
   need to save progress when cursor moves
   need to pick up progress when cursor moves
-  need to figure out scaling for iters per tick
-  need to display total play time and maybe an estimate for remaining time
-  show info about current julia completion
   sort out drawing or not drawing cell borders
   get howie and julia faces into set space
   add win condition and display
-  re-factor help text to show different voices
 
   accumulate points to increase iter rate
   write post text
-  make favicon.png
   include attribution text
 
 */
@@ -69,6 +68,7 @@ class App {
     const tickInterval = 1000 / 30;
     setInterval(() => this.tick(), tickInterval);
     //setInterval(() => this.saveToStorage(), 5000);
+    this.draw();
 
     if (this.firstLoad) {
       this.showModal('helpContainer');
@@ -341,10 +341,11 @@ class App {
   }
 
   tick() {
-    //30 ticks per second
-    //TODO: figure out why this nees to be so large
-    const itersPerSecond = 10;
-    this.iterRate = itersPerSecond; //TODO: update this to an equation based on points
+    this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
+    this.juliaPercent = 0; //TODO: calc this
+    this.mandelPercent = 0; //TODO: calc this
+    this.juliaMSRem = 99999;
+    this.mandelMSRem = 9999999;
     if (this.state.marker !== -1) {
       const gridStatus = this.state.gridStatus[this.state.marker];
       if (gridStatus.progress < this.maxProgress) {
@@ -359,7 +360,7 @@ class App {
   
         const curTime = (new Date()).getTime();
         const deltaTime = gridStatus.lastTime > 0 ? ((curTime - gridStatus.lastTime) / 1000) : 0;
-        let itersRemaining = this.iterRate * deltaTime;
+        let itersRemaining = this.rate * deltaTime;
         while (itersRemaining > 0 && gridStatus.progress < this.maxProgress) {
           const oldIters = gridStatus.iters;
           gridStatus.iters += itersRemaining;
@@ -448,6 +449,59 @@ class App {
     const gx = Math.floor(x / 32);
     const gy = Math.floor(y / 32);
     this.gridClick(gx, gy);
+  }
+
+  timeToObj(t) {
+    const result = {};
+
+    result.y = Math.floor(t / (365 * 24 * 60 * 60));
+    t = t % (365 * 24 * 60 * 60);
+    result.d = Math.floor(t / (24 * 60 * 60));
+    t = t % (24 * 60 * 60);
+    result.h = Math.floor(t / (60 * 60));
+    t = t % (60 * 60);
+    result.m = Math.floor(t / 60);
+    t = t % 60;
+    result.s = t;
+
+    return result;
+  }  
+
+  remainingToStr(ms, full) {
+    if (ms === Infinity) {
+      return 'Infinity';
+    }
+
+    const timeObj = this.timeToObj(ms / 1000);
+
+    if (full) {
+      return `${timeObj.y}:${timeObj.d.toString().padStart(3,0)}:${timeObj.h.toString().padStart(2,0)}:${timeObj.m.toString().padStart(2,0)}:${timeObj.s.toFixed(1).padStart(4,0)}`;
+    }
+
+    //if (timeObj.y > 0 || timeObj.d > 0 || timeObj.h > 0) {
+      //return `${timeObj.y}:${timeObj.d.toString().padStart(3,0)}:${timeObj.h.toString().padStart(2,0)}:${timeObj.m.toString().padStart(2,0)}`;
+      return `${timeObj.y}:${timeObj.d.toString().padStart(3,0)}:${timeObj.h.toString().padStart(2,0)}:${timeObj.m.toString().padStart(2,0)}:${Math.ceil(timeObj.s).toString().padStart(2,0)}`;
+    //} else {
+      //return `${timeObj.m.toString().padStart(2,0)}:${timeObj.s.toFixed(1).padStart(4,0)}`;
+    //  return `${timeObj.m.toString().padStart(2,0)}:${Math.ceil(timeObj.s).toString().padStart(2,0)}`;
+    //}
+
+  }  
+
+  //this only handles info box updates
+  draw() {
+    const nbsp = '\u00a0';
+    const playTime = (new Date()).getTime() - this.state.gameStart;
+    this.UI.infoTotalPlayTime.innerText = this.remainingToStr(playTime, true);
+    this.UI.infoPoints.innerText = this.state.setPoints;
+    this.UI.infoRate.innerText = Math.floor(this.rate) + ' iter / sec';
+
+    this.UI.infoJuliaProgress.style.width = `${this.juliaPercent}%`;
+    this.UI.infoJuliaProgress.innerHTML = nbsp + this.remainingToStr(this.juliaMSRem, true);
+    this.UI.infoMandelProgress.style.width = `${this.mandelPercent}%`;
+    this.UI.infoMandelProgress.innerText = nbsp + this.remainingToStr(this.mandelMSRem, true);
+
+    window.requestAnimationFrame(() => this.draw());
   }
 }
 
