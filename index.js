@@ -21,10 +21,7 @@
   TODO:
   sort out drawing or not drawing cell borders
   add win condition and display
-  change help references to "black pixel" since the set pixels are now
-    filled with howie and julia images
 
-  accumulate points to increase iter rate
   write post text
   include attribution text
 
@@ -428,7 +425,8 @@ class App {
       for (let cx = 0; cx < size; cx += step) {
         const x = this.lerp(-2, 2, cx / size);
         const y = this.lerp(-2, 2, cy / size);
-        const val = this.getJulia(x, y, cr, ci, 100);
+        const rawVal = this.getJulia(x, y, cr, ci, 100);
+        const val = rawVal === 0 ? 100 : rawVal;
         this.juliaData[i] = val;
         this.juliaTotal += val;
         if (i >= progress) {
@@ -440,8 +438,8 @@ class App {
   }
 
   tick() {
-    this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
-    //this.rate = 10000;
+    //this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
+    this.rate = 10000;
     this.juliaPercent = 0; //TODO: calc this
     this.mandelPercent = 0; //TODO: calc this
     this.juliaMSRem = 0;
@@ -468,6 +466,9 @@ class App {
           gridStatus.iters += itersRemaining;
           itersRemaining = 0;
           if (gridStatus.iters >= this.juliaData[gridStatus.progress]) {
+            if (this.juliaData[gridStatus.progress] === 100) {
+              this.state.setPoints += 1;
+            }
             itersRemaining = gridStatus.iters - this.juliaData[gridStatus.progress];
             gridStatus.progress++;
             gridStatus.iters = 0;
@@ -495,6 +496,7 @@ class App {
               this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
             }
           }
+          this.state.setPoints += 1;
           //this.state.marker++;
           this.juliaData = undefined;
         } else {
