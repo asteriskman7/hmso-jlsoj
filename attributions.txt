@@ -1,0 +1,4 @@
+jld photo
+  license: https://creativecommons.org/licenses/by/2.0/deed.en
+  credit Neil Grabowsky
+  Changes: cropped, resized
