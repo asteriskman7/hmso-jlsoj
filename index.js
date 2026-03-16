@@ -1,27 +1,28 @@
 'use strict';
 
 /*
-  first canvas is a grid of blocks
-  to complete each one you must complete the related julia set
-  each pixel in the julia set takes a time proportional to the bail out iterations
-  when you find pixels in the julia set you get points you can use to increase
-    your speed
-  you apply effort to mandel squares by allocating your julia set points
-  you start out with 1 julia set point to allocate
-  you must also get some points for completing a julia set because otherwise
-    there are a lot of julia sets that probably will have 0 pixels in the set
-  need to pre-calculate all the data because floating point calculations might
-    not be the same on all devices
 
-  total iterations including set pixels as maxiter: 1151522780
-  poins in all julia sets: 6655572
-  average iterations per julia: 1124534
-  min possible iterations per julia: 262144
+  Fans of fractals, rejoice, for I bring you Howie Mandel(brot)'s set of Julia
+  Louis-Dreyfus Sets of Jubilation!
 
-  TODO:
-  sort out drawing or not drawing cell borders
+  This game will have you generating points in the Julia set like nobody's business
+  and will have true Howie and Julia devotees feeling like they've picked the
+  million dollar case!
+  million bucks!
 
-  write post text
+  Sure, the game is also based on some fancy math things from some dudes named
+  Benoit B. Mandelbrot (the B stands for Benoit B. Mandelbrot) and Gaston Julia,
+  but who cares about that when you've got Howie "The Big Deal" Mandel and Julia
+  "Big Salad" Louis-Dreyfus staring back at you? It's like they're saying "Generate
+  those sets, baby. You're doing great, just great!"
+
+  So, if you're ready to join the ranks of the unhinged Howie and Julia fandom, 
+  try HMSoJLSoJ and start generating those sets like there's no tomorrow. Who knows,
+  maybe Howie and Julia themselves will see your progress and declare you the 
+  ultimate fan!
+
+  (This game is mostly idle and will take "a while" but can be completed before
+  the heat death of the universe, unlike some games with "Prestige" in the name.)
 
 */
 
@@ -50,6 +51,7 @@ class App {
 
     this.maxProgress = 512 * 512;
     this.maxIter = 1151522780;
+    this.rate = 0;
     
     this.level = -1;
     this.initUI();
@@ -256,10 +258,18 @@ class App {
     }
     this.webgl.draw();
     this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+    this.ctx.strokeStyle = 'black';
     for (let x = 0; x < w; x++) {
       for (let y = 0; y < w; y++) {
         this.ctx.strokeRect(x * size, y * size, size, size);
       }
+    }
+
+    if (this.state.marker !== -1) {
+      const mx = this.state.marker % 32;
+      const my = Math.floor(this.state.marker / 32);
+      this.ctx.strokeStyle = 'yellow';
+      this.ctx.strokeRect(mx * size, my * size, size, size);
     }
 
   }
@@ -519,6 +529,7 @@ class App {
             this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
           }
         }
+
         
         //game win condition
         if (this.state.totalIters >= this.maxIter) {
@@ -552,7 +563,17 @@ class App {
         this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
       } else {
         console.log("CHANGE GRID");
-        this.state.gridStatus[this.state.marker].lastTime = 0;
+
+        if (this.state.marker !== -1) {
+          const px = this.state.marker % 32;
+          const py = Math.floor(this.state.marker / 32);
+          this.state.gridStatus[this.state.marker].lastTime = 0;
+          this.ctx.strokeStyle = 'black';
+          this.ctx.strokeRect(px * 32, py * 32, 32, 32);
+        }
+
+        this.ctx.strokeStyle = 'yellow';
+        this.ctx.strokeRect(x * 32, y * 32, 32, 32);
         this.state.marker = clickedLevel;
         this.state.gridStatus[this.state.marker].lastTime = 0;
         this.juliaData = undefined;
@@ -615,7 +636,7 @@ class App {
     const playTime = (new Date()).getTime() - this.state.gameStart;
     this.UI.infoTotalPlayTime.innerText = this.remainingToStr(playTime, true);
     this.UI.infoPoints.innerText = this.state.setPoints;
-    this.UI.infoRate.innerText = Math.floor(this.rate) + ' iter / sec';
+    this.UI.infoRate.innerText = this.rate.toFixed(3) + ' iter / sec';
 
     this.UI.infoJuliaProgress.style.width = `${this.juliaPercent}%`;
     this.UI.infoJuliaProgress.innerHTML = nbsp + this.remainingToStr(this.juliaMSRem, true);
