@@ -57,6 +57,7 @@ dialog::backdrop {
 .helpBoth {
   background-color: var(--help-both);
   margin-bottom: 5px;
+  padding: 7px;
 }
 
 .helpBoth::before {
@@ -86,6 +87,7 @@ dialog::backdrop {
 .helpHowie {
   background-color: var(--help-howie);
   margin-bottom: 5px;
+  padding: 7px;
 }
 
 .helpHowie::before {
@@ -103,6 +105,7 @@ dialog::backdrop {
 .helpJulia {
   background-color: var(--help-julia);
   margin-bottom: 5px;
+  padding: 7px;
 }
 
 .helpJulia::before {

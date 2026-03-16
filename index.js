@@ -20,10 +20,8 @@
 
   TODO:
   sort out drawing or not drawing cell borders
-  add win condition and display
 
   write post text
-  include attribution text
 
 */
 
@@ -51,7 +49,7 @@ class App {
 
 
     this.maxProgress = 512 * 512;
-    this.tempP = 0;
+    this.maxIter = 1151522780;
     
     this.level = -1;
     this.initUI();
@@ -62,7 +60,7 @@ class App {
 
     const tickInterval = 1000 / 30;
     setInterval(() => this.tick(), tickInterval);
-    //setInterval(() => this.saveToStorage(), 5000);
+    setInterval(() => this.saveToStorage(), 5000);
     this.draw();
 
     if (this.firstLoad) {
@@ -99,7 +97,8 @@ class App {
     this.state = {
       setPoints: 0,
       gridStatus: [],
-      marker: -1
+      marker: -1,
+      totalIters: 0
     };
 
     for (let x = 0; x < 32; x++) {
@@ -218,6 +217,7 @@ class App {
     this.UI.imexImport.onclick = () => this.import();
     this.UI.imexExport.onclick = () => this.export();
     this.UI.imexClose.onclick = () => this.closeModal('imexContainer');
+    this.UI.winClose.onclick = () => this.closeModal('winContainer');
 
 
     this.cmain.onclick = (evt) => this.onclick(evt);
@@ -438,12 +438,12 @@ class App {
   }
 
   tick() {
-    //this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
-    this.rate = 10000;
-    this.juliaPercent = 0; //TODO: calc this
-    this.mandelPercent = 0; //TODO: calc this
+    this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
+    //this.rate = 10000; // this is rate per MS already
+    this.juliaPercent = 0;
+    this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
     this.juliaMSRem = 0;
-    this.mandelMSRem = 0;
+    this.mandelMSRem = 1000 * (this.maxIter - this.state.totalIters) / this.rate;
     if (this.state.marker !== -1) {
       const gridStatus = this.state.gridStatus[this.state.marker];
       if (gridStatus.progress < this.maxProgress) {
@@ -464,12 +464,14 @@ class App {
         while (itersRemaining > 0 && gridStatus.progress < this.maxProgress) {
           const oldIters = gridStatus.iters;
           gridStatus.iters += itersRemaining;
+          this.state.totalIters += itersRemaining;
           itersRemaining = 0;
           if (gridStatus.iters >= this.juliaData[gridStatus.progress]) {
             if (this.juliaData[gridStatus.progress] === 100) {
               this.state.setPoints += 1;
             }
             itersRemaining = gridStatus.iters - this.juliaData[gridStatus.progress];
+            this.state.totalIters -= itersRemaining;
             gridStatus.progress++;
             gridStatus.iters = 0;
             this.juliaRem -= this.juliaData[gridStatus.progress];
@@ -518,7 +520,14 @@ class App {
           }
         }
         
-        //TODO: detect game win condition
+        //game win condition
+        if (this.state.totalIters >= this.maxIter) {
+          this.state.endTime = (new Date()).getTime();
+          const playTime = this.state.endTime - this.state.gameStart;
+          this.UI.winPlayTime.textContent = this.remainingToStr(playTime, true);
+          this.showModal('winContainer');
+          this.saveToStorage();
+        }
         
       }
     }
@@ -546,6 +555,7 @@ class App {
         this.state.gridStatus[this.state.marker].lastTime = 0;
         this.state.marker = clickedLevel;
         this.state.gridStatus[this.state.marker].lastTime = 0;
+        this.juliaData = undefined;
       }
     } else {
       this.showMap();
@@ -559,6 +569,7 @@ class App {
     const gx = Math.floor(x / 32);
     const gy = Math.floor(y / 32);
     this.gridClick(gx, gy);
+    this.saveToStorage();
   }
 
   timeToObj(t) {
