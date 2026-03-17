@@ -52,6 +52,7 @@ class App {
     this.maxProgress = 512 * 512;
     this.maxIter = 1151522780;
     this.rate = 0;
+    this.showCompleteJulias = false;
     
     this.level = -1;
     this.initUI();
@@ -224,6 +225,7 @@ class App {
 
     this.cmain.onclick = (evt) => this.onclick(evt);
     this.UI.showMap.onclick = () => this.showMap();
+    this.UI.checkShowJulia.onchange = () => this.showJuliaChange();
 
   }
 
@@ -247,7 +249,7 @@ class App {
     for (let x = 0; x < w; x++) {
       for (let y = 0; y < w; y++) {
         const state = this.state.gridStatus[x + y * w];
-        if (state.progress < this.maxProgress) {
+        if (this.showCompleteJulias || (state.progress < this.maxProgress)) {
           const cr = this.lerp(-2, 1, x / w);
           const ci = this.lerp(-1.5, 1.5, y / w);
           this.drawJuliaMini(this.ctx, size, x, y, cr, ci, state);
@@ -449,7 +451,7 @@ class App {
 
   tick() {
     this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
-    //this.rate = 10000; // this is rate per MS already
+    this.rate = 100000;
     this.juliaPercent = 0;
     this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
     this.juliaMSRem = 0;
@@ -469,8 +471,6 @@ class App {
         const curTime = (new Date()).getTime();
         const deltaTime = gridStatus.lastTime > 0 ? ((curTime - gridStatus.lastTime) / 1000) : 0;
         let itersRemaining = this.rate * deltaTime;
-        //TODO: figure out if large deltaTime from having the game closed for a while will
-        //      be so much that this will freeze too long
         while (itersRemaining > 0 && gridStatus.progress < this.maxProgress) {
           const oldIters = gridStatus.iters;
           gridStatus.iters += itersRemaining;
@@ -495,10 +495,12 @@ class App {
           //draw mandel
           if (this.level === -1) {
             //draw the mandel piece
-            this.webgl.resetTriangleIndexes();
-            this.drawMandel(this.ctx, cx * 32, cy * 32, 32, 2);
-            this.webgl.draw();
-            this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
+            if (!this.showCompleteJulias) {
+              this.webgl.resetTriangleIndexes();
+              this.drawMandel(this.ctx, cx * 32, cy * 32, 32, 2);
+              this.webgl.draw();
+              this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
+            }
           } else {
             if (this.state.marker === this.level) {
               this.webgl.resetTriangleIndexes();
@@ -644,6 +646,13 @@ class App {
     this.UI.infoMandelProgress.innerText = nbsp + this.remainingToStr(this.mandelMSRem, true);
 
     window.requestAnimationFrame(() => this.draw());
+  }
+  
+  showJuliaChange() {
+    const checked = this.UI.checkShowJulia.checked;
+
+    this.showCompleteJulias = checked;
+    this.drawTopGrid();
   }
 }
 
