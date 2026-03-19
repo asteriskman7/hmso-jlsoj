@@ -227,6 +227,21 @@ class App {
     this.UI.showMap.onclick = () => this.showMap();
     this.UI.checkShowJulia.onchange = () => this.showJuliaChange();
 
+    let parent = this.UI.infoUpgrades;
+    const scale = 0.75;
+    let size = 12 * scale;
+    while (size > 1) {
+      const span = document.createElement('span');
+      span.innerText = 'upgrades and to unlock upgrades, you must first unlock ';
+      const div = document.createElement('span');
+      span.style.fontSize = `${size}px`;
+      parent.append(span);
+      parent.append(div);
+      parent = div;
+      size = size * scale;
+
+    }
+
   }
 
   showModal(id) {
@@ -451,7 +466,7 @@ class App {
 
   tick() {
     this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
-    this.rate = 100000;
+    //this.rate = 100000;
     this.juliaPercent = 0;
     this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
     this.juliaMSRem = 0;
