@@ -211,6 +211,8 @@ class App {
       this.UI[namedElement.id] = namedElement;
     }
 
+    this.UI.showMap.disabled = true;
+
     this.UI.reset.onclick = () => this.showModal('resetConfirm');
     this.UI.resetYes.onclick = () => this.reset();
     this.UI.resetNo.onclick = () => this.closeModal('resetConfirm');
@@ -227,6 +229,7 @@ class App {
     this.UI.showMap.onclick = () => this.showMap();
     this.UI.checkShowJulia.onchange = () => this.showJuliaChange();
 
+    //draw fractal text
     let parent = this.UI.infoUpgrades;
     const scale = 0.75;
     let size = 12 * scale;
@@ -255,6 +258,7 @@ class App {
   showMap() {
     this.level = -1;
     this.drawTopGrid();
+    this.UI.showMap.disabled = true;
   }
 
   drawTopGrid() {
@@ -565,10 +569,12 @@ class App {
     console.log('grid click', x, y);
 
     if (this.level ===  -1) {
+      //if we're showing the map
       
       const clickedLevel = x + 32 * y;
       
       if (clickedLevel === this.state.marker) {
+        //if you clicked the active grid cell
         this.level = clickedLevel;
         const cr = this.lerp(-2, 1, x / 32);
         const ci = this.lerp(-1.5, 1.5, y / 32);
@@ -578,7 +584,9 @@ class App {
         this.drawJulia(this.ctx, 0, 0, this.cmain.width, 2, cr, ci, state);
         this.webgl.draw();
         this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+        app.UI.showMap.disabled = false;
       } else {
+        //if you clicked a new grid cell
         console.log("CHANGE GRID");
 
         if (this.state.marker !== -1) {
@@ -596,7 +604,9 @@ class App {
         this.juliaData = undefined;
       }
     } else {
+      //return to the map
       this.showMap();
+      app.UI.showMap.disabled = true;
     }
   }
 
