@@ -84,6 +84,10 @@ class WebGLFramework {
       this.canvas.height = canvasHeight;
     }
     this.canvasBGColor = canvasBGColor;
+    this.webglActive = false;
+
+    this.canvas.onwebglcontextlost = (evt) => this.onwebglcontextlost(evt);
+    this.canvas.onwebglcontextrestored = (evt) => this.onwebglcontextrestored(evt);
 
     this.initializeWebGL();
   }
@@ -171,6 +175,8 @@ void main() {
     gl.bindVertexArray(vao);
     gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
+    this.webglActive = true;
+
   }
 
   createShader(gl, type, source) {
@@ -200,6 +206,18 @@ void main() {
     console.log('PROGRAM LINK FAILURE');
     console.log(gl.getProgramInfoLog(program));
     gl.deleteProgram(program);
+  }
+
+  onwebglcontextlost(evt) {
+    evt.preventDefault();
+    this.webglActive = false;
+  }
+
+  onwebglcontextrestored(evt) {
+    this.initializeWebGL();
+    if (this.triangleCount !== undefined) {
+      this.initArrays(this.triangleCount);
+    }
   }
 
   //call this to re-size the points buffer and create the positionArray
@@ -246,6 +264,7 @@ void main() {
   //call this to init the position and colors arrays to hold data for
   //no more than triangleCount triangles
   initArrays(triangleCount) {
+    this.triangleCount = triangleCount;
     const pointsPerTriangle = 3;
     const pointCount = triangleCount * pointsPerTriangle;
     this.initPositions(pointCount);
@@ -266,8 +285,11 @@ void main() {
     const pointsPerTriangle = 3;
     const pointCount = triangleCount === undefined ? (this.nextPointIndex >> 1) : (triangleCount * pointsPerTriangle);
 
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, pointCount);
+    if (this.webglActive) {
+      //don't draw when context lost
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, pointCount);
+    }
 
     this.updatedPositions = false;
     this.updatedColors = false;
