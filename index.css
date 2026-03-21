@@ -120,6 +120,11 @@ dialog::backdrop {
   left: 450px;
 }
 
+.helpPS {
+  filter: opacity(0.1);
+  font-size: 12px;
+}
+
 #resetButtonsDiv {
   display: grid;
   grid-template-columns: 1fr 1fr;
