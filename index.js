@@ -491,9 +491,9 @@ class App {
         const deltaTime = gridStatus.lastTime > 0 ? ((curTime - gridStatus.lastTime) / 1000) : 0;
         let itersRemaining = this.rate * deltaTime;
         while (itersRemaining > 0 && gridStatus.progress < this.maxProgress) {
-          const oldIters = gridStatus.iters;
           gridStatus.iters += itersRemaining;
           this.state.totalIters += itersRemaining;
+          let itersSpent = itersRemaining;
           itersRemaining = 0;
           if (gridStatus.iters >= this.juliaData[gridStatus.progress]) {
             if (this.juliaData[gridStatus.progress] === 100) {
@@ -503,8 +503,10 @@ class App {
             this.state.totalIters -= itersRemaining;
             gridStatus.progress++;
             gridStatus.iters = 0;
-            this.juliaRem -= this.juliaData[gridStatus.progress];
+            itersSpent -= itersRemaining;
+            //this.juliaRem -= this.juliaData[gridStatus.progress];
           }
+          this.juliaRem -= itersSpent;
         }
         gridStatus.lastTime = curTime;
         this.juliaMSRem = 1000 * this.juliaRem / this.rate;
