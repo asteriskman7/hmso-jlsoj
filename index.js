@@ -484,7 +484,7 @@ class App {
 
   tick() {
     this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
-    this.rate = 10000000;
+    //this.rate = 10000000;
     this.juliaPercent = 0;
     this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
     this.juliaMSRem = 0;
