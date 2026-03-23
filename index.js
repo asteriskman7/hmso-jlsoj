@@ -413,6 +413,16 @@ class App {
     if (big) {
       ctx.drawImage(this.UI.imgJLD1, locx, locy, size, size, locx, locy, size, size); 
     }
+    let juliaFunc;
+    if (size === 1024 && this.juliaData !== undefined) {
+      juliaFunc = (x, y, cr, ci, iter, i) => {
+        const val = this.juliaData[i];
+        return val === 100 ? 0 : val;
+      };
+    } else {
+      juliaFunc = (x, y, cr, ci, iter, i) => this.getJulia(x, y, cr, ci, iter);
+    }
+    let i = 0;
     for (let yi = 0; yi < iw; yi++) {
       for (let xi = 0; xi < iw; xi++) {
         const cx = xi * step;
@@ -421,7 +431,10 @@ class App {
         const x = this.lerp(-2, 2, cx / size);
         const y = this.lerp(-2, 2, cy / size);
         //TODO: get julia data from calc
-        const val = this.getJulia(x, y, cr, ci, 100);
+        
+        //const val = this.getJulia(x, y, cr, ci, 100);
+        const val = juliaFunc(x, y, cr, ci, 100, i);
+
         let rgb;
         let a = 1;
         if (statef > f) {
@@ -442,6 +455,7 @@ class App {
           a = 1;
         }
         this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, a);
+        i++;
       }
     }
   }
