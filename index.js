@@ -484,7 +484,7 @@ class App {
 
   tick() {
     this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
-    //this.rate = 100000;
+    this.rate = 10000000;
     this.juliaPercent = 0;
     this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
     this.juliaMSRem = 0;
@@ -533,6 +533,12 @@ class App {
             if (!this.showCompleteJulias) {
               this.webgl.resetTriangleIndexes();
               this.drawMandel(this.ctx, cx * 32, cy * 32, 32, 2);
+              this.webgl.draw();
+              this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
+            } else {
+              //draw the julia
+              this.webgl.resetTriangleIndexes();
+              this.drawJuliaMini(this.ctx, 32, cx, cy, cr, ci, gridStatus);
               this.webgl.draw();
               this.ctx.drawImage(this.webgl.canvas, cx * 32, cy * 32, 32, 32, cx * 32, cy * 32, 32, 32);
             }
