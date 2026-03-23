@@ -474,7 +474,7 @@ class App {
     this.juliaPercent = 0;
     this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
     this.juliaMSRem = 0;
-    this.mandelMSRem = 1000 * (this.maxIter - this.state.totalIters) / this.rate;
+    this.mandelMSRem = Math.max(0, 1000 * (this.maxIter - this.state.totalIters) / this.rate);
     if (this.state.marker !== -1) {
       const gridStatus = this.state.gridStatus[this.state.marker];
       if (gridStatus.progress < this.maxProgress) {
@@ -555,7 +555,7 @@ class App {
 
         
         //game win condition
-        if (this.state.totalIters >= this.maxIter) {
+        if (this.state.totalIters >= this.maxIter && this.state.endTime === undefined) {
           this.state.endTime = (new Date()).getTime();
           const playTime = this.state.endTime - this.state.gameStart;
           this.UI.winPlayTime.textContent = this.remainingToStr(playTime, true);
@@ -662,7 +662,12 @@ class App {
   //this only handles info box updates
   draw() {
     const nbsp = '\u00a0';
-    const playTime = (new Date()).getTime() - this.state.gameStart;
+    let playTime;
+    if (this.state.endTime === undefined) {
+      playTime = (new Date()).getTime() - this.state.gameStart;
+    } else {
+      playTime = this.state.endTime - this.state.gameStart;
+    }
     this.UI.infoTotalPlayTime.innerText = this.remainingToStr(playTime, true);
     this.UI.infoPoints.innerText = this.state.setPoints;
     this.UI.infoRate.innerText = this.rate.toFixed(3) + ' iter / sec';
