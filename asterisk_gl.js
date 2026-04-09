@@ -68,6 +68,12 @@
 
   Copy to your own canvas if you didn't pass it in when creating the instance:
   ctx.drawImage(webgl.canvas, 0, 0);
+
+  note for testing context loss:
+  in dev console:
+  ext = frameworkInstance.gl.getExtension('WEBGL_lose_context');
+  ext.loseContext();
+  ext.restoreContext();
 */
 
 
