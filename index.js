@@ -245,6 +245,8 @@ class App {
 
     }
 
+    this.UI.imgHM1.addEventListener('load', () => this.handleLateHowie());
+    this.UI.imgJLD1.addEventListener('load', () => this.handleLateJulia());
   }
 
   showModal(id) {
@@ -382,6 +384,9 @@ class App {
   }
 
   drawMandel(ctx, locx, locy, size, step) {
+    //draw black in case howie image is late
+    ctx.fillStyle = 'black';
+    ctx.fillRect(locx, locy, size, size);
     ctx.drawImage(this.UI.imgHM1, locx, locy, size, size, locx, locy, size, size);
     for (let cx = locx; cx < locx + size; cx += step) {
       for (let cy = locy; cy < locy + size; cy += step) {
@@ -411,6 +416,9 @@ class App {
     const statef = state.progress / this.maxProgress;
     const iw = size / step;
     if (big) {
+      //draw black in case julia image is late
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, size, size);
       ctx.drawImage(this.UI.imgJLD1, locx, locy, size, size, locx, locy, size, size); 
     }
     let juliaFunc;
@@ -430,7 +438,6 @@ class App {
         const f = (yi * iw + xi) / (iw * iw);
         const x = this.lerp(-2, 2, cx / size);
         const y = this.lerp(-2, 2, cy / size);
-        //TODO: get julia data from calc
         
         //const val = this.getJulia(x, y, cr, ci, 100);
         const val = juliaFunc(x, y, cr, ci, 100, i);
@@ -704,7 +711,28 @@ class App {
     const checked = this.UI.checkShowJulia.checked;
 
     this.showCompleteJulias = checked;
-    this.drawTopGrid();
+    if (this.level === -1) {
+      this.drawTopGrid();
+    }
+  }
+
+  handleLateHowie() {
+    if (this.level === -1) {
+      this.drawTopGrid();
+    }
+  }
+
+  handleLateJulia() {
+    if (this.level !== -1) {
+      const cx = this.state.marker % 32;
+      const cy = Math.floor(this.state.marker / 32);
+      const cr = this.lerp(-2, 1, cx / 32);
+      const ci = this.lerp(-1.5, 1.5, cy / 32);
+      const status = this.state.gridStatus[this.level];
+      this.drawJulia(this.ctx, 0, 0, 1024, 2, cr, ci, status);
+      this.webgl.draw();
+      this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+    }
   }
 }
 
