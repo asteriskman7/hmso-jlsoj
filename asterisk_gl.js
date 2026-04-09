@@ -204,6 +204,8 @@ void main() {
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
     const success = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (success) {
       return program;
@@ -218,14 +220,23 @@ void main() {
     console.log('agl owcl');
     evt.preventDefault();
     this.webglActive = false;
+
+    //drop all gl references
+    this.gl = undefined;
+    this.positionBuffer = undefined;
+    this.colorBuffer = undefined;
+    
   }
 
   onwebglcontextrestored(evt) {
     console.log('agl owcr');
+
+    setTimeout(() => {
     this.initializeWebGL();
-    if (this.triangleCount !== undefined) {
-      this.initArrays(this.triangleCount);
-    }
+      if (this.triangleCount !== undefined) {
+        this.initArrays(this.triangleCount);
+      }
+    }, 0);
   }
 
   //call this to re-size the points buffer and create the positionArray
@@ -244,6 +255,7 @@ void main() {
 
   //positions must be a Float32Array
   setPositions(positions) {
+    if (!this.webglActive) {return;}
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, positions);
     this.pointCount = positions.length >> 1;
@@ -265,6 +277,7 @@ void main() {
 
   //colors must be a Float32Array
   setColors(colors) {
+    if (!this.webglActive) {return;}
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorBuffer);
     this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, colors);
   }
