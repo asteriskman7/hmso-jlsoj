@@ -86,9 +86,9 @@ class WebGLFramework {
     this.canvasBGColor = canvasBGColor;
     this.webglActive = false;
 
-    this.canvas.onwebglcontextlost = (evt) => this.onwebglcontextlost(evt);
-    this.canvas.onwebglcontextrestored = (evt) => this.onwebglcontextrestored(evt);
-
+    this.canvas.addEventListener('webglcontextlost', (evt) => this.onwebglcontextlost(evt));
+    this.canvas.addEventListener('webglcontextrestored', (evt) => this.onwebglcontextrestored(evt));
+    
     this.initializeWebGL();
   }
 
@@ -209,11 +209,13 @@ void main() {
   }
 
   onwebglcontextlost(evt) {
+    console.log('agl owcl');
     evt.preventDefault();
     this.webglActive = false;
   }
 
   onwebglcontextrestored(evt) {
+    console.log('agl owcr');
     this.initializeWebGL();
     if (this.triangleCount !== undefined) {
       this.initArrays(this.triangleCount);
