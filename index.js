@@ -493,7 +493,7 @@ class App {
     this.rate = 10 + 990 * Math.pow(this.state.setPoints / 6656596, 0.5);
     //this.rate = 10000000;
     this.juliaPercent = 0;
-    this.mandelPercent = 100 * this.state.setPoints / this.maxPoints;
+    this.mandelPercent = 100 * this.state.totalIters / this.maxIter;
     this.juliaMSRem = 0;
     this.mandelMSRem = Math.max(0, 1000 * (this.maxIter - this.state.totalIters) / this.rate);
     if (this.state.marker !== -1) {
