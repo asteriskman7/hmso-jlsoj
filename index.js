@@ -629,7 +629,9 @@ class App {
         this.ctx.strokeStyle = 'yellow';
         this.ctx.strokeRect(x * 32, y * 32, 32, 32);
         this.state.marker = clickedLevel;
-        this.state.gridStatus[this.state.marker].lastTime = 0;
+        //this.state.gridStatus[this.state.marker].lastTime = 0;
+        this.state.gridStatus[this.state.marker].lastTime = (new Date()).getTime();
+
         this.juliaData = undefined;
       }
     } else {
