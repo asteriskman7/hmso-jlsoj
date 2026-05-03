@@ -582,7 +582,11 @@ class App {
 
         
         //game win condition
-        if (this.state.totalIters >= this.maxIter && this.state.endTime === undefined) {
+        const completeCount = this.state.gridStatus.reduce( (acc, e) => {
+          return acc + +(e.progress >= this.maxProgress);
+        }, 0);
+        //if (this.state.totalIters >= this.maxIter && this.state.endTime === undefined) {
+        if (completeCount >= (32 * 32) && this.state.endTime === undefined) { 
           this.state.endTime = (new Date()).getTime();
           const playTime = this.state.endTime - this.state.gameStart;
           this.UI.winPlayTime.textContent = this.remainingToStr(playTime, true);
