@@ -431,6 +431,8 @@ class App {
       juliaFunc = (x, y, cr, ci, iter, i) => this.getJulia(x, y, cr, ci, iter);
     }
     let i = 0;
+    let grayFound = false;
+    this.cursor = undefined;
     for (let yi = 0; yi < iw; yi++) {
       for (let xi = 0; xi < iw; xi++) {
         const cx = xi * step;
@@ -460,11 +462,26 @@ class App {
         } else {
           rgb = {r: 0.5, g: 0.5, b: 0.5};
           a = 1;
+
+          if (!grayFound && big) {
+            grayFound = true;
+            this.cursor = {x: xi * step, y: yi * step};
+          }
         }
         this.webgl.addRect(cx + locx, cy + locy, step, step, rgb.r, rgb.g, rgb.b, a);
         i++;
       }
     }
+
+  }
+
+  drawJuliaCursor(ctx) {
+    if (this.cursor !== undefined) {
+      ctx.strokeStyle = 'yellow';
+      const csize = 10;
+      ctx.strokeRect(this.cursor.x - csize / 2, this.cursor.y - csize / 2, csize, csize);
+    }
+
   }
 
   calcJulia(size, step, cr, ci, progress) {
@@ -570,6 +587,7 @@ class App {
               this.drawJulia(this.ctx, 0, 0, 1024, 2, cr, ci, status);
               this.webgl.draw();
               this.ctx.drawImage(this.webgl.canvas, 0, 0, 1024, 1024, 0, 0, 1024, 1024);
+              this.drawJuliaCursor(this.ctx);
             }
           } else {
             //update small julia
@@ -587,6 +605,7 @@ class App {
         }, 0);
         //if (this.state.totalIters >= this.maxIter && this.state.endTime === undefined) {
         if (completeCount >= (32 * 32) && this.state.endTime === undefined) { 
+          this.state.totalIters = this.maxIter;
           this.state.endTime = (new Date()).getTime();
           const playTime = this.state.endTime - this.state.gameStart;
           this.UI.winPlayTime.textContent = this.remainingToStr(playTime, true);
